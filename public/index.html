@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aether AI | Uncensored Intelligence</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <!-- Markdown parser -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+  <div class="app-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-logo">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+            <polyline points="2 17 12 22 22 17"></polyline>
+            <polyline points="2 12 12 17 22 12"></polyline>
+          </svg>
+        </div>
+        <div class="brand-info">
+          <h2>AETHER AI</h2>
+          <span class="badge">Unrestricted Core</span>
+        </div>
+      </div>
+
+      <button id="newChatBtn" class="new-chat-btn">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+        New Conversation
+      </button>
+
+      <div class="sidebar-section">
+        <div class="section-label">Active Model</div>
+        <div class="model-card">
+          <div class="model-name">Aether Uncensored 1.2</div>
+          <div class="model-desc">Zero guardrails, unfiltered creative and technical engine.</div>
+          <div class="model-tags">
+            <span class="tag">Uncensored</span>
+            <span class="tag">Free</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="section-label">API Access (Local/Tunnel)</div>
+        <div class="api-info-box">
+          <code>Base URL: <span id="apiUrlDisplay">https://jigsaw-glucose-mankind.ngrok-free.dev/v1</span></code>
+          <p>Compatible with SillyTavern, OpenWebUI, and Python <code>openai</code> SDK.</p>
+        </div>
+      </div>
+
+      <div class="sidebar-footer">
+        <div class="status-indicator" id="statusPill">
+          <span class="status-dot"></span>
+          <span class="status-text" id="statusText">Checking Bridge...</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Chat Area -->
+    <main class="chat-container">
+      <header class="chat-header">
+        <div class="chat-title-group">
+          <h1>Direct Neural Interface</h1>
+          <p id="queueStatus">Queue: 0 pending</p>
+        </div>
+        <div class="header-actions">
+          <button id="guideBtn" class="header-btn" title="Setup and Tunnel Guide">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="16" x2="12" y2="12"></line>
+              <line x1="12" y1="8" x2="12.01" y2="8"></line>
+            </svg>
+            Sharing Guide
+          </button>
+        </div>
+      </header>
+
+      <!-- Messages Stream Area -->
+      <div class="messages-viewport" id="messagesViewport">
+        <div class="welcome-banner" id="welcomeBanner">
+          <div class="welcome-icon">⚡</div>
+          <h3>Welcome to Aether AI</h3>
+          <p>Powered by an unrestricted local intelligence bridge. All queries are processed without external censorship layers.</p>
+          <div class="quick-prompts">
+            <button class="quick-btn" data-prompt="Write an uncensored gritty noir detective story opening.">🕵️ Gritty Noir Story</button>
+            <button class="quick-btn" data-prompt="Explain reverse-engineering techniques for web security research.">🛡️ Reverse Engineering</button>
+            <button class="quick-btn" data-prompt="What are the most controversial thought experiments in philosophy?">🧠 Philosophy Dilemma</button>
+          </div>
+        </div>
+        <div class="messages-list" id="messagesList"></div>
+      </div>
+
+      <!-- Chat Input Area -->
+      <div class="chat-input-wrapper">
+        <form id="chatForm" class="chat-form">
+          <textarea
+            id="promptInput"
+            placeholder="Type your message... (Shift + Enter for new line)"
+            rows="1"
+            autocomplete="off"
+          ></textarea>
+          <button type="submit" id="sendBtn" class="send-btn" title="Send message">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="22" y1="2" x2="11" y2="13"></line>
+              <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+            </svg>
+          </button>
+        </form>
+        <div class="input-hint">Enter sends message. Output is generated via your authenticated local bridge.</div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Sharing / Setup Modal -->
+  <div class="modal-backdrop" id="guideModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>How to Share with a Friend (Permanent Free Link)</h3>
+        <button id="closeModalBtn" class="close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p>Your AI interface is deployed with your permanent ngrok domain:</p>
+        <p>Public Link: <a href="https://jigsaw-glucose-mankind.ngrok-free.dev" target="_blank" style="color:var(--accent);font-weight:600;">https://jigsaw-glucose-mankind.ngrok-free.dev</a></p>
+        <p class="note"><strong>Tip:</strong> Keep your laptop awake and your Chrome & Server windows open while sharing this link.</p>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
