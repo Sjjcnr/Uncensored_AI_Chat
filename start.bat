@@ -2,6 +2,14 @@
 cd /d "%~dp0"
 title Aether AI Master Launcher
 
+:: ========================================================
+:: CONFIGURATION (Optional Custom ngrok Domain)
+:: If you have a reserved ngrok domain, specify it below:
+:: Example: set NGROK_DOMAIN=your-subdomain.ngrok-free.dev
+:: If left blank, ngrok will assign a standard dynamic URL.
+:: ========================================================
+set NGROK_DOMAIN=
+
 echo ========================================================
 echo            AETHER AI - 1-CLICK MASTER LAUNCHER
 echo ========================================================
@@ -29,22 +37,36 @@ if %ERRORLEVEL% neq 0 (
 echo [3/5] Starting Bridge Server...
 start "Aether AI - Server Window (DO NOT CLOSE)" cmd /k "cd /d "%~dp0" && node server.js"
 
-:: 4. Launch ngrok Tunnel with your permanent domain
-echo [4/5] Starting ngrok tunnel (jigsaw-glucose-mankind.ngrok-free.dev)...
-start "Aether AI - ngrok Tunnel (DO NOT CLOSE)" cmd /k "ngrok http 3500 --url https://jigsaw-glucose-mankind.ngrok-free.dev"
+:: 4. Launch ngrok Tunnel (if ngrok CLI is installed)
+where ngrok >nul 2>&1
+if %ERRORLEVEL% equ 0 (
+    if "%NGROK_DOMAIN%"=="" (
+        echo [4/5] Starting standard ngrok tunnel on port 3500...
+        start "Aether AI - ngrok Tunnel (DO NOT CLOSE)" cmd /k "ngrok http 3500"
+    ) else (
+        echo [4/5] Starting ngrok tunnel with custom domain (%NGROK_DOMAIN%)...
+        start "Aether AI - ngrok Tunnel (DO NOT CLOSE)" cmd /k "ngrok http 3500 --url https://%NGROK_DOMAIN%"
+    )
+) else (
+    echo [4/5] ngrok CLI not detected. Running in local mode only.
+)
 
 :: 5. Wait 3 seconds for services to initialize
 echo [5/5] Initializing connections...
 ping -n 4 127.0.0.1 >nul
 
-:: 6. Open the live public website in browser
+:: 6. Open the interface in default browser
 echo.
 echo ========================================================
-echo   SUCCESS! Aether AI is now LIVE on the internet!
-echo   Public URL: https://jigsaw-glucose-mankind.ngrok-free.dev
-echo   Local URL:  http://localhost:3500
+echo   SUCCESS! Aether AI is now running!
+echo   Local Dashboard: http://localhost:3500
+if not "%NGROK_DOMAIN%"=="" (
+    echo   Public URL:      https://%NGROK_DOMAIN%
+    start https://%NGROK_DOMAIN%
+) else (
+    start http://localhost:3500
+)
 echo ========================================================
-start https://jigsaw-glucose-mankind.ngrok-free.dev
 
 ping -n 3 127.0.0.1 >nul
 exit

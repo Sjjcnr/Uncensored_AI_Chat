@@ -24,9 +24,14 @@ if (window.marked) {
   });
 }
 
-// Display current origin for API
+// Display current origin for API and sharing modal
 if (apiUrlDisplay) {
   apiUrlDisplay.innerText = `${window.location.origin}/v1`;
+}
+const modalPublicLink = document.getElementById('modalPublicLink');
+if (modalPublicLink) {
+  modalPublicLink.href = window.location.origin;
+  modalPublicLink.innerText = window.location.origin;
 }
 
 // 1. Check Bridge Connection Status

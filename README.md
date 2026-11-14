@@ -29,7 +29,7 @@ Whether accessed through the built-in obsidian glassmorphic Web UI or integrated
 ## 🌟 Key Highlights
 
 - **⚡ 1-Click Master Automation (`start.bat`):** Zero-friction launcher that cleans stuck ports, probes Chrome CDP, spins up the bridge server, mounts the ngrok tunnel, and opens your browser in seconds.
-- **🌐 Permanent Public Edge Gateway:** Configured with a static ngrok domain (`https://jigsaw-glucose-mankind.ngrok-free.dev`) providing global WAN access from mobile devices, tablets, and remote workstations.
+- **🌐 Global Public Edge Gateway:** Configured for seamless ngrok edge tunneling (`https://<your-domain>.ngrok-free.dev` or dynamic URL) providing global WAN access from mobile devices, tablets, and remote workstations.
 - **🔌 Drop-In OpenAI API Compatibility:** Full `/v1/chat/completions` and `/v1/models` endpoints supporting both buffered replies and Server-Sent Events (SSE) token-by-token streaming.
 - **🎭 Stealth Brand Masking & Identity Steering:** Real-time stream sanitizer (`sanitizeBrand`) and system-prompt injector enforce the **Aether AI** persona, scrubbing vendor references from text, code, and errors.
 - **🛡️ Quarantined Chrome Profile Isolation:** Binds to `%LOCALAPPDATA%\VeniceBridgeProfile` on remote debugging port `9222`, guaranteeing complete isolation from your personal Google Chrome logins, extensions, and cookies.
@@ -57,7 +57,7 @@ Aether AI operates across three decoupled layers: **Public Ingress**, **Applicat
                                            v
              +-------------------------------------------------------------+
              |                 NGROK STATIC EDGE TUNNEL                    |
-             |       https://jigsaw-glucose-mankind.ngrok-free.dev         |
+             |       https://<your-subdomain>.ngrok-free.dev         |
              |             (Edge TLS Termination / NAT Traversal)          |
              +-----------------------------+-------------------------------+
                                            |
@@ -144,7 +144,7 @@ The master script executes an automated 6-phase deployment:
 1. **Process & Socket Hygiene:** Kills any orphaned `ngrok.exe` processes and resolves active PID bindings on TCP port `3500` via `netstat -aon`, terminating lingering processes to eliminate `EADDRINUSE` errors.
 2. **CDP Daemon Probing:** Queries `netstat -ano | findstr 9222`. If Chrome is inactive, it executes `launch-chrome.bat` with a dedicated ICMP wait loop (`ping -n 3 127.0.0.1`) until Chrome DevTools Protocol is initialized.
 3. **Server Daemonization:** Spawns the Node.js Express server in a dedicated persistent console window (`Aether AI - Server Window`) using `cmd /k` so runtime logs remain visible.
-4. **Static Public Edge Tunnel:** Spawns ngrok with your static public hostname (`ngrok http 3500 --url https://jigsaw-glucose-mankind.ngrok-free.dev`).
+4. **Static Public Edge Tunnel:** Spawns ngrok with your static public hostname (`ngrok http 3500 --url https://<your-subdomain>.ngrok-free.dev`).
 5. **Convergence Delay:** Pauses 3 seconds to guarantee socket listener binding and TLS handshaking before clients hit the port.
 6. **Automated UX Egress:** Launches your default operating system browser directly to the live public endpoint.
 
@@ -154,7 +154,7 @@ The master script executes an automated 6-phase deployment:
 
 Aether AI includes a permanent, reserved public edge URL powered by ngrok:
 
-👉 **[https://jigsaw-glucose-mankind.ngrok-free.dev](https://jigsaw-glucose-mankind.ngrok-free.dev)**
+👉 **[https://<your-subdomain>.ngrok-free.dev](https://<your-subdomain>.ngrok-free.dev)**
 
 ### Remote Access Capabilities
 - **Universal Device Access:** Open the URL on any smartphone (iOS / Android), tablet, or external laptop worldwide.
@@ -174,7 +174,7 @@ Aether AI exposes an OpenAI-compatible REST API, allowing immediate drop-in inte
 
 | Parameter | Localhost Value | Public / Remote Value |
 | :--- | :--- | :--- |
-| **API Base URL** | `http://localhost:3500/v1` | `https://jigsaw-glucose-mankind.ngrok-free.dev/v1` |
+| **API Base URL** | `http://localhost:3500/v1` | `https://<your-subdomain>.ngrok-free.dev/v1` |
 | **API Key** | `sk-aether-free` *(any arbitrary string)* | `sk-aether-free` *(any arbitrary string)* |
 | **Default Model** | `dark-core-uncensored` | `dark-core-uncensored` |
 | **Secondary Model** | `dark-heretic-flash` | `dark-heretic-flash` |
@@ -190,7 +190,7 @@ GET /v1/models
 
 **cURL Example:**
 ```bash
-curl -X GET "https://jigsaw-glucose-mankind.ngrok-free.dev/v1/models" \
+curl -X GET "https://<your-subdomain>.ngrok-free.dev/v1/models" \
      -H "Authorization: Bearer sk-aether-free" \
      -H "ngrok-skip-browser-warning: true"
 ```
@@ -225,7 +225,7 @@ POST /v1/chat/completions
 
 **cURL Example:**
 ```bash
-curl -X POST "https://jigsaw-glucose-mankind.ngrok-free.dev/v1/chat/completions" \
+curl -X POST "https://<your-subdomain>.ngrok-free.dev/v1/chat/completions" \
      -H "Content-Type: application/json" \
      -H "Authorization: Bearer sk-aether-free" \
      -H "ngrok-skip-browser-warning: true" \
@@ -272,7 +272,7 @@ POST /v1/chat/completions
 
 **cURL Streaming Example:**
 ```bash
-curl -N -X POST "https://jigsaw-glucose-mankind.ngrok-free.dev/v1/chat/completions" \
+curl -N -X POST "https://<your-subdomain>.ngrok-free.dev/v1/chat/completions" \
      -H "Content-Type: application/json" \
      -H "Authorization: Bearer sk-aether-free" \
      -H "ngrok-skip-browser-warning: true" \
@@ -295,7 +295,7 @@ from openai import OpenAI
 
 # Initialize client pointing to Aether AI
 client = OpenAI(
-    base_url="https://jigsaw-glucose-mankind.ngrok-free.dev/v1",
+    base_url="https://<your-subdomain>.ngrok-free.dev/v1",
     api_key="sk-aether-free",
     default_headers={"ngrok-skip-browser-warning": "true"}
 )
@@ -317,7 +317,7 @@ print(response.choices[0].message.content)
 from openai import OpenAI
 
 client = OpenAI(
-    base_url="https://jigsaw-glucose-mankind.ngrok-free.dev/v1",
+    base_url="https://<your-subdomain>.ngrok-free.dev/v1",
     api_key="sk-aether-free",
     default_headers={"ngrok-skip-browser-warning": "true"}
 )
@@ -344,13 +344,13 @@ print()
 #### SillyTavern
 1. Open **API Connections** (plug icon).
 2. Set **API** to `Chat Completion` and **Chat Completion Source** to `Custom (OpenAI-compatible)`.
-3. Set **Custom Endpoint (Base URL)** to `https://jigsaw-glucose-mankind.ngrok-free.dev/v1`.
+3. Set **Custom Endpoint (Base URL)** to `https://<your-subdomain>.ngrok-free.dev/v1`.
 4. Enter any API Key (e.g. `sk-aether-free`).
 5. Click **Connect** and select model `dark-core-uncensored`.
 
 #### OpenWebUI
 1. Navigate to **Admin Settings > Connections > OpenAI API**.
-2. Add a new endpoint: `https://jigsaw-glucose-mankind.ngrok-free.dev/v1`.
+2. Add a new endpoint: `https://<your-subdomain>.ngrok-free.dev/v1`.
 3. Set API Key to `sk-aether-free`.
 4. Save and select `dark-core-uncensored` from the model picker.
 

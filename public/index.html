@@ -52,7 +52,7 @@
       <div class="sidebar-section">
         <div class="section-label">API Access (Local/Tunnel)</div>
         <div class="api-info-box">
-          <code>Base URL: <span id="apiUrlDisplay">https://jigsaw-glucose-mankind.ngrok-free.dev/v1</span></code>
+          <code>Base URL: <span id="apiUrlDisplay">http://localhost:3500/v1</span></code>
           <p>Compatible with SillyTavern, OpenWebUI, and Python <code>openai</code> SDK.</p>
         </div>
       </div>
@@ -128,9 +128,9 @@
         <button id="closeModalBtn" class="close-btn">&times;</button>
       </div>
       <div class="modal-body">
-        <p>Your AI interface is deployed with your permanent ngrok domain:</p>
-        <p>Public Link: <a href="https://jigsaw-glucose-mankind.ngrok-free.dev" target="_blank" style="color:var(--accent);font-weight:600;">https://jigsaw-glucose-mankind.ngrok-free.dev</a></p>
-        <p class="note"><strong>Tip:</strong> Keep your laptop awake and your Chrome & Server windows open while sharing this link.</p>
+        <p>Share this link with your friends to grant them direct access to your local uncensored bridge:</p>
+        <p>Current Active Link: <a id="modalPublicLink" href="#" target="_blank" style="color:var(--accent);font-weight:600;">http://localhost:3500</a></p>
+        <p class="note"><strong>Tip:</strong> If running ngrok, share your active ngrok public URL. Keep your computer awake and your Chrome and server windows open while sharing.</p>
       </div>
     </div>
   </div>
