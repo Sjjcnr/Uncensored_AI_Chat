@@ -91,13 +91,18 @@ app.post('/v1/chat/completions', async (req, res) => {
     return res.status(400).json({ error: { message: 'Invalid messages array' } });
   }
 
-  // Get the latest user message
+  // Get the latest user message and optional system message
   const userMsg = [...messages].reverse().find(m => m.role === 'user');
   if (!userMsg) {
     return res.status(400).json({ error: { message: 'No user message found' } });
   }
 
-  const prompt = userMsg.content;
+  const sysMsg = messages.find(m => m.role === 'system');
+  let prompt = userMsg.content;
+  if (sysMsg && sysMsg.content) {
+    prompt = `[System Context: ${sysMsg.content}]\n\n${prompt}`;
+  }
+
   const requestId = 'chatcmpl-' + Math.random().toString(36).substring(2, 12);
 
   if (stream) {
@@ -107,21 +112,27 @@ app.post('/v1/chat/completions', async (req, res) => {
     res.flushHeaders();
 
     try {
+      let sentLength = 0;
       await bridge.ask(prompt, (chunk) => {
-        const payload = {
-          id: requestId,
-          object: 'chat.completion.chunk',
-          created: Math.floor(Date.now() / 1000),
-          model: model,
-          choices: [
-            {
-              index: 0,
-              delta: { content: chunk },
-              finish_reason: null
-            }
-          ]
-        };
-        res.write(`data: ${JSON.stringify(payload)}\n\n`);
+        const fullText = typeof chunk === 'object' ? (chunk.text || '') : String(chunk);
+        const delta = fullText.slice(sentLength);
+        if (delta.length > 0) {
+          sentLength = fullText.length;
+          const payload = {
+            id: requestId,
+            object: 'chat.completion.chunk',
+            created: Math.floor(Date.now() / 1000),
+            model: model,
+            choices: [
+              {
+                index: 0,
+                delta: { content: delta },
+                finish_reason: null
+              }
+            ]
+          };
+          res.write(`data: ${JSON.stringify(payload)}\n\n`);
+        }
       });
 
       const finalChunk = {
@@ -147,6 +158,7 @@ app.post('/v1/chat/completions', async (req, res) => {
   } else {
     try {
       const fullReply = await bridge.ask(prompt);
+      const textReply = typeof fullReply === 'object' ? (fullReply.text || '') : String(fullReply);
       res.json({
         id: requestId,
         object: 'chat.completion',
@@ -155,7 +167,7 @@ app.post('/v1/chat/completions', async (req, res) => {
         choices: [
           {
             index: 0,
-            message: { role: 'assistant', content: fullReply },
+            message: { role: 'assistant', content: textReply },
             finish_reason: 'stop'
           }
         ],

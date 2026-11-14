@@ -168,6 +168,13 @@ Aether AI includes a permanent, reserved public edge URL powered by ngrok:
 
 ## 🔌 OpenAI-Compatible API Specification
 
+> [!IMPORTANT]
+> **API Mechanics & Reality Check:**
+> The /v1 endpoints provide a **lightweight emulation layer** that converts standard OpenAI HTTP requests into local Chrome automation via Puppeteer-core.
+> - **Single-Threaded FIFO Mutex:** Requests are typed into your local Chrome tab one at a time.
+> - **Shared 8-Message Daily Quota:** API calls share the exact same 8-prompt / 24-hour rolling limit as the web interface. It is intended for testing and personal scripts, not high-volume production.
+> - **Mocked Usage Metrics:** Token counts (usage.total_tokens) return 0 because DOM scraping does not extract raw BPE tokenizer statistics.
+
 Aether AI exposes an OpenAI-compatible REST API, allowing immediate drop-in integration with tools like **SillyTavern**, **OpenWebUI**, **LibreChat**, **Cursor**, **Continue.dev**, or the official **OpenAI Python / Node SDKs**.
 
 ### Connection Parameters
