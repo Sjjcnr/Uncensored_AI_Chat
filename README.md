@@ -1,4 +1,4 @@
-# Aether AI — Uncensored Intelligence Bridge & OpenAI Facade
+# Aether AI — Uncensored Intelligence Bridge & Web Facade
 
 <div align="center">
 
@@ -6,268 +6,162 @@
 [![Node.js Version](https://img.shields.io/badge/Node.js-v18%2B-339933?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org/)
 [![Express 5](https://img.shields.io/badge/Express-v5.3.0-000000?style=for-the-badge&logo=express&logoColor=white)](https://expressjs.com/)
 [![Puppeteer Core](https://img.shields.io/badge/Puppeteer--Core-v25.17-00D8A2?style=for-the-badge&logo=puppeteer&logoColor=white)](https://pptr.dev/)
-[![ngrok Tunnel](https://img.shields.io/badge/Tunnel-ngrok%20Edge-1F1E33?style=for-the-badge&logo=ngrok&logoColor=white)](https://ngrok.com/)
-[![Architecture](https://img.shields.io/badge/Architecture-CDP%20%7C%20SSE%20%7C%20REST-6366f1?style=for-the-badge)](#-system-architecture)
-[![TCO](https://img.shields.io/badge/TCO-%240.00%20(100%25%20Free)-10b981?style=for-the-badge)](#-zero-cost-tco--infrastructure)
+[![TCO](https://img.shields.io/badge/TCO-%240.00%20(Free)-10b981?style=for-the-badge)](#-zero-cost-infrastructure)
 
-**A self-hosted, 100% free neural facade and web bridge for unrestricted LLM models. Wraps Venice's unauthenticated web tier inside a cyberpunk dark-mode interface and an OpenAI-compatible `/v1/chat/completions` API gateway.**
+**A self-hosted developer bridge and web facade for unrestricted AI models. Automates Venice AI's unauthenticated web tier via local Chrome DevTools Protocol (CDP), providing a custom dark-mode web chat and a lightweight OpenAI-compatible `/v1/chat/completions` endpoint.**
 
-[Live Public Link](#-live-permanent-public-tunnel) • [1-Click Setup](#-1-click-quick-start) • [OpenAI API Spec](#-openai-compatible-api-specification) • [System Architecture](#-system-architecture) • [Troubleshooting](#-troubleshooting--faq)
+[Quick Start](#-quick-start-windows) • [How It Works](#-how-it-works) • [OpenAI API Reference](#-openai-compatible-api-reference) • [Daily Limits & Quota](#-venice-guest-tier-limits--quota) • [Troubleshooting](#-troubleshooting--faq)
 
 </div>
 
 ---
 
-## ⚡ Executive Overview
+## ⚡ Overview
 
-**Aether AI** transforms headless and automated browser compute into an enterprise-grade, zero-cost AI provider. By leveraging the **Chrome DevTools Protocol (CDP)**, a dedicated quarantined browser profile, and a custom Node.js Express facade, Aether AI connects directly to Venice AI's guest tier without requiring login credentials, API billing, or KYC verification.
+**Aether AI** is an open-source automation bridge designed for personal testing and research with uncensored language models. Rather than paying for developer API credits, it uses `puppeteer-core` to connect to a dedicated local Google Chrome instance running Venice AI's unauthenticated guest chat.
 
-Whether accessed through the built-in obsidian glassmorphic Web UI or integrated as a drop-in OpenAI API replacement into client applications like **SillyTavern**, **OpenWebUI**, **Cursor**, or custom Python automation pipelines, Aether AI delivers uncensored model access with real-time SSE token streaming, concurrency protection, and stealth brand virtualization.
-
----
-
-## 🌟 Key Highlights
-
-- **⚡ 1-Click Master Automation (`start.bat`):** Zero-friction launcher that cleans stuck ports, probes Chrome CDP, spins up the bridge server, mounts the ngrok tunnel, and opens your browser in seconds.
-- **🌐 Global Public Edge Gateway:** Configured for seamless ngrok edge tunneling (`https://<your-domain>.ngrok-free.dev` or dynamic URL) providing global WAN access from mobile devices, tablets, and remote workstations.
-- **🔌 Drop-In OpenAI API Compatibility:** Full `/v1/chat/completions` and `/v1/models` endpoints supporting both buffered replies and Server-Sent Events (SSE) token-by-token streaming.
-- **🎭 Stealth Brand Masking & Identity Steering:** Real-time stream sanitizer (`sanitizeBrand`) and system-prompt injector enforce the **Aether AI** persona, scrubbing vendor references from text, code, and errors.
-- **🛡️ Quarantined Chrome Profile Isolation:** Binds to `%LOCALAPPDATA%\VeniceBridgeProfile` on remote debugging port `9222`, guaranteeing complete isolation from your personal Google Chrome logins, extensions, and cookies.
-- **🔒 Mutex Concurrency Queue:** Atomic request queue (`requestQueue` / `isBusy`) prevents multi-user prompt collision and race conditions across single-tab browser automation.
-- **⏱️ Dual-Condition Stability Watchdog:** Adaptive DOM polling with sub-second finish detection (0.8s button vanishing gate) and a 2.4s safety watchdog to ensure zero dropped messages and eliminate timeout hangs.
-- **💰 100% Zero-Cost ($0.00 TCO):** Zero cloud bills, zero API subscriptions, zero token metering.
+It wraps this automation in:
+1. **A Custom Dark-Mode Web Client:** A clean, responsive single-page chat interface styled with an obsidian cyberpunk aesthetic, real-time Server-Sent Events (SSE) streaming, and Markdown rendering.
+2. **An OpenAI-Compatible API Layer:** Express endpoints (`/v1/models` and `/v1/chat/completions`) that allow lightweight scripts and OpenAI SDK clients to query the bridge programmatically.
+3. **Brand & Identity Cloaking:** Automatic prompt steering and real-time output sanitization (`sanitizeBrand`) to mask third-party vendor names.
+4. **1-Click Launch Automation (`start.bat`):** A Windows batch script that manages process cleanup, launches the dedicated Chrome instance, starts the Node.js server, and optionally configures an ngrok tunnel.
 
 ---
 
 ## 🏗️ System Architecture
 
-Aether AI operates across three decoupled layers: **Public Ingress**, **Application Facade**, and **Automation Engine**.
-
-### High-Level Topology
-
 ```
 +-----------------------------------------------------------------------------------------+
-|                                    CLIENT INGRESS LAYER                                 |
-|  [Custom Web UI (SPA)]   |   [SillyTavern / OpenWebUI]   |   [Python SDK / curl / Apps] |
-+------------+-----------------------------+-------------------------------+--------------+
-             | (SSE /api/chat)             | (/v1/chat/completions)        | (/v1/models)
-             |                             |                               |
-             +-----------------------------v-------------------------------+
-                                           |
-                                           v
-             +-------------------------------------------------------------+
-             |                 NGROK STATIC EDGE TUNNEL                    |
-             |       https://<your-subdomain>.ngrok-free.dev         |
-             |             (Edge TLS Termination / NAT Traversal)          |
-             +-----------------------------+-------------------------------+
-                                           |
-                                           v
-+-----------------------------------------------------------------------------------------+
-|                          EXPRESS 5 API SERVER (server.js :3500)                         |
-|  - CORS & JSON Parsing Middleware                                                       |
-|  - Static Obsidian Web UI Host (`public/`)                                              |
-|  - Native SSE Chat Pipeline (`/api/chat`)                                               |
-|  - OpenAI-Compatible REST Router (`/v1/chat/completions`, `/v1/models`)                 |
-|  - Telemetry & Health Probe (`/api/status`, `/api/new-chat`)                            |
-+------------------------------------------+----------------------------------------------+
-                                           | bridge.ask(prompt, onChunk)
-                                           v
-+-----------------------------------------------------------------------------------------+
-|                        BRIDGE ORCHESTRATOR CORE (bridge.js)                             |
-|  - Lock Engine & FIFO Request Mutex (`this.requestQueue`, `this.isBusy`)                |
-|  - Dynamic Identity Steering Injector (Regex Detection -> Persona Injection)            |
-|  - React / Chakra UI Synthetic Event Bypasser (Native Prototype Setter)                 |
-|  - Real-Time Token Streamer & Watchdog (200ms Poller, 0.8s / 2.4s Stability Gates)       |
-|  - Real-Time Stream Brand Sanitizer (`sanitizeBrand`)                                   |
-|  - In-DOM Quota & Rate-Limit Circuit Breaker                                            |
-+------------------------------------------+----------------------------------------------+
-                                           | Chrome DevTools Protocol (CDP WebSocket)
-                                           v
-+-----------------------------------------------------------------------------------------+
-|                    ISOLATED CHROME INSTANCE (launch-chrome.bat :9222)                   |
-|  - Command: chrome.exe --remote-debugging-port=9222 --user-data-dir="...Profile"        |
-|  - Target Session: https://venice.ai/chat/classic (Anonymous Guest Tier)               |
-+-----------------------------------------------------------------------------------------+
-```
-
-### Mermaid Sequence Diagram
-
-```mermaid
-sequenceDiagram
-    autonumber
-    actor Client as Client / Python / Web UI
-    participant Server as Express Server (:3500)
-    participant Bridge as Bridge Core (bridge.js)
-    participant Chrome as Chrome CDP (:9222)
-    participant Provider as Venice Guest Tier
-
-    Client->>Server: POST /v1/chat/completions (stream=true)
-    Server->>Bridge: ask(prompt, onChunk)
-    Note over Bridge: Enqueue task in FIFO Mutex Queue
-    Bridge->>Bridge: Acquire isBusy Lock & Apply Identity Steering
-    Bridge->>Chrome: Inject prompt via Native HTMLTextArea setter
-    Bridge->>Chrome: Trigger Submit Button (Enter fallback)
-    Chrome->>Provider: Send prompt to neural model
-
-    loop Every 200ms DOM Polling
-        Chrome-->>Bridge: Scrape assistant div.prose delta
-        Bridge->>Bridge: Run sanitizeBrand(chunk)
-        Bridge-->>Server: onChunk({ text, html })
-        Server-->>Client: SSE data: {"choices":[{"delta":{"content":"..."}}]}
-    end
-
-    Note over Bridge: Watchdog detects Stop Button gone & 0.8s DOM stability
-    Bridge-->>Server: Execution Resolved
-    Server-->>Client: data: [DONE]
-    Bridge->>Bridge: Release isBusy Lock -> Process Next in Queue
+|                                    CLIENT ACCESS LAYER                                  |
+|            [Custom Web UI (SPA)]           |       [Python SDK / curl Scripts]          |
++---------------------+----------------------+---------------------+----------------------+
+                      | (SSE /api/chat)                            | (/v1/chat/completions)
+                      |                                            |
+                      +----------------------+---------------------+
+                                             |
+                                             v
+                      +--------------------------------------------+
+                      |         LOCAL EXPRESS SERVER (:3500)       |
+                      |  - Static Web UI Host (public/)            |
+                      |  - SSE Chat Endpoint (/api/chat)           |
+                      |  - OpenAI Emulation (/v1/chat/completions) |
+                      |  - Health & Queue Status (/api/status)     |
+                      +----------------------+---------------------+
+                                             | bridge.ask(prompt, onChunk)
+                                             v
+                      +--------------------------------------------+
+                      |       BRIDGE CONTROLLER (bridge.js)        |
+                      |  - FIFO Request Mutex (single concurrency) |
+                      |  - DOM Input Injection (native setter)     |
+                      |  - Real-time Output Brand Sanitizer        |
+                      |  - 2.5s Text Stability Watchdog            |
+                      |  - Quota Error Detection                   |
+                      +----------------------+---------------------+
+                                             | Chrome DevTools Protocol (Port 9222)
+                                             v
+                      +--------------------------------------------+
+                      |         DEDICATED CHROME INSTANCE          |
+                      |  - Profile: %LOCALAPPDATA%\VeniceBridge    |
+                      |  - Active Tab: venice.ai/chat/classic      |
+                      +--------------------------------------------+
 ```
 
 ---
 
-## ⚡ 1-Click Quick Start
+## 🌟 How It Works
+
+1. **Dedicated Chrome Profile:** `launch-chrome.bat` launches Google Chrome with `--remote-debugging-port=9222` and an isolated profile directory (`%LOCALAPPDATA%\VeniceBridgeProfile`). This ensures your personal Chrome browsing data, extensions, and logins remain untouched.
+2. **CDP Connection:** `bridge.js` connects to Chrome via WebSocket using `puppeteer-core`. It finds or opens the `https://venice.ai/chat/classic` tab.
+3. **Synthetic Event Dispatch:** When a message is submitted, the bridge injects the prompt directly into the web input using the native `HTMLTextAreaElement` prototype setter, dispatching synthetic `input` and `change` events so React/Chakra registers the text.
+4. **FIFO Mutex Queue:** Because automation interacts with a single open browser tab, requests are queued in memory (`requestQueue`) and processed sequentially to avoid prompt collisions.
+5. **Streaming & Watchdog:** The bridge polls the assistant's DOM element every 200ms, streaming new text deltas to the client. Generation finishes when the Stop button disappears and the text remains stable for 0.8 seconds (with a 2.5-second fallback watchdog).
+6. **Brand Sanitization:** Outgoing chunks pass through `sanitizeBrand()`, replacing upstream mentions of "Venice" or "DeepSeek" with "Aether AI".
+
+---
+
+## ⚡ Quick Start (Windows)
 
 ### Prerequisites
-1. **Windows 10 / 11**
-2. **[Node.js](https://nodejs.org/)** (v18 or higher recommended)
-3. **Google Chrome** (standard installation path)
-4. **[ngrok](https://ngrok.com/)** (installed and added to system `PATH`)
+* **Windows 10 / 11**
+* **[Node.js](https://nodejs.org/)** (v18 or higher)
+* **Google Chrome** (standard installation)
+* *(Optional)* **[ngrok](https://ngrok.com/)** for remote access
 
-### Launching the System
-Simply double-click the launcher script in the project root:
+### Installation
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/Sjjcnr/Uncensored_AI_Chat.git
+   cd Uncensored_AI_Chat
+   ```
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Start the application:
+   ```bat
+   start.bat
+   ```
 
-```bat
-start.bat
-```
-
-### What `start.bat` Executes Under the Hood
-The master script executes an automated 6-phase deployment:
-1. **Process & Socket Hygiene:** Kills any orphaned `ngrok.exe` processes and resolves active PID bindings on TCP port `3500` via `netstat -aon`, terminating lingering processes to eliminate `EADDRINUSE` errors.
-2. **CDP Daemon Probing:** Queries `netstat -ano | findstr 9222`. If Chrome is inactive, it executes `launch-chrome.bat` with a dedicated ICMP wait loop (`ping -n 3 127.0.0.1`) until Chrome DevTools Protocol is initialized.
-3. **Server Daemonization:** Spawns the Node.js Express server in a dedicated persistent console window (`Aether AI - Server Window`) using `cmd /k` so runtime logs remain visible.
-4. **Static Public Edge Tunnel:** Spawns ngrok with your static public hostname (`ngrok http 3500 --url https://<your-subdomain>.ngrok-free.dev`).
-5. **Convergence Delay:** Pauses 3 seconds to guarantee socket listener binding and TLS handshaking before clients hit the port.
-6. **Automated UX Egress:** Launches your default operating system browser directly to the live public endpoint.
-
----
-
-## 🌐 Live Permanent Public Tunnel
-
-Aether AI includes a permanent, reserved public edge URL powered by ngrok:
-
-👉 **[https://<your-subdomain>.ngrok-free.dev](https://<your-subdomain>.ngrok-free.dev)**
-
-### Remote Access Capabilities
-- **Universal Device Access:** Open the URL on any smartphone (iOS / Android), tablet, or external laptop worldwide.
-- **NAT / Firewall Traversal:** Zero port forwarding required on your router; works behind Carrier-Grade NAT (CGNAT) and restricted Wi-Fi networks.
-- **Automatic Edge SSL/TLS:** Full HTTPS encryption terminating at the ngrok edge.
-
-> [!TIP]
-> **Headless API Client Compatibility:** When interacting with the ngrok free tier using automated scripts or curl, include the custom header `-H "ngrok-skip-browser-warning: true"` or a standard `User-Agent` to bypass ngrok's one-time anti-abuse interstitial page.
+### What `start.bat` Does
+1. Checks TCP port `3500` and frees any lingering processes.
+2. Verifies if Chrome is listening on port `9222`; if not, calls `launch-chrome.bat`.
+3. Starts the Express backend on `http://localhost:3500`.
+4. Checks if `ngrok` is installed:
+   - If an `NGROK_DOMAIN` is configured in `start.bat`, binds that domain.
+   - Otherwise, starts a standard dynamic tunnel, or falls back to local-only mode.
+5. Opens the web interface in your default browser.
 
 ---
 
-## 🔌 OpenAI-Compatible API Specification
+## 🔌 OpenAI-Compatible API Reference
 
 > [!IMPORTANT]
-> **API Mechanics & Reality Check:**
-> The /v1 endpoints provide a **lightweight emulation layer** that converts standard OpenAI HTTP requests into local Chrome automation via Puppeteer-core.
-> - **Single-Threaded FIFO Mutex:** Requests are typed into your local Chrome tab one at a time.
-> - **Shared 8-Message Daily Quota:** API calls share the exact same 8-prompt / 24-hour rolling limit as the web interface. It is intended for testing and personal scripts, not high-volume production.
-> - **Mocked Usage Metrics:** Token counts (usage.total_tokens) return 0 because DOM scraping does not extract raw BPE tokenizer statistics.
+> **API Reality Check & Limitations:**
+> The `/v1` endpoints provide a **lightweight emulation layer** backed by the local Chrome automation bridge.
+> - **Single-Threaded Execution:** Requests are typed into a single Chrome tab one by one. Concurrent requests queue in memory.
+> - **Shared 8-Message Daily Limit:** API calls consume the same **8 messages per 24 hours** guest quota as the Web UI.
+> - **Mocked Token Usage:** Token counts (`prompt_tokens`, `completion_tokens`) return `0` because DOM scraping does not provide tokenizer data.
+> - **Intended Use:** Personal scripts, testing, and small automations. Not suitable for high-volume automated tools (e.g. IDE coding extensions or continuous roleplay engines).
 
-Aether AI exposes an OpenAI-compatible REST API, allowing immediate drop-in integration with tools like **SillyTavern**, **OpenWebUI**, **LibreChat**, **Cursor**, **Continue.dev**, or the official **OpenAI Python / Node SDKs**.
+### Connection Settings
 
-### Connection Parameters
-
-| Parameter | Localhost Value | Public / Remote Value |
-| :--- | :--- | :--- |
-| **API Base URL** | `http://localhost:3500/v1` | `https://<your-subdomain>.ngrok-free.dev/v1` |
-| **API Key** | `sk-aether-free` *(any arbitrary string)* | `sk-aether-free` *(any arbitrary string)* |
-| **Default Model** | `dark-core-uncensored` | `dark-core-uncensored` |
-| **Secondary Model** | `dark-heretic-flash` | `dark-heretic-flash` |
+| Setting | Value |
+| :--- | :--- |
+| **Local Base URL** | `http://localhost:3500/v1` |
+| **Tunnel Base URL** | `https://<your-ngrok-domain>.ngrok-free.dev/v1` *(if using ngrok)* |
+| **API Key** | Any string (e.g. `sk-aether-free`) |
+| **Default Model** | `dark-core-uncensored` |
 
 ---
 
 ### Endpoint Reference
 
-#### 1. List Available Models
+#### 1. Models List
 ```http
 GET /v1/models
 ```
-
-**cURL Example:**
+**cURL:**
 ```bash
-curl -X GET "https://<your-subdomain>.ngrok-free.dev/v1/models" \
-     -H "Authorization: Bearer sk-aether-free" \
-     -H "ngrok-skip-browser-warning: true"
-```
-
-**Response:**
-```json
-{
-  "object": "list",
-  "data": [
-    {
-      "id": "dark-core-uncensored",
-      "object": "model",
-      "created": 1700000000,
-      "owned_by": "custom-bridge"
-    },
-    {
-      "id": "dark-heretic-flash",
-      "object": "model",
-      "created": 1700000000,
-      "owned_by": "custom-bridge"
-    }
-  ]
-}
+curl -X GET "http://localhost:3500/v1/models"
 ```
 
 ---
 
-#### 2. Chat Completions (Buffered / Non-Streaming)
+#### 2. Chat Completions (Non-Streaming)
 ```http
 POST /v1/chat/completions
 ```
-
-**cURL Example:**
+**cURL:**
 ```bash
-curl -X POST "https://<your-subdomain>.ngrok-free.dev/v1/chat/completions" \
+curl -X POST "http://localhost:3500/v1/chat/completions" \
      -H "Content-Type: application/json" \
-     -H "Authorization: Bearer sk-aether-free" \
-     -H "ngrok-skip-browser-warning: true" \
      -d '{
        "model": "dark-core-uncensored",
        "messages": [
-         {"role": "user", "content": "Explain the concept of zero-knowledge proofs in simple terms."}
+         {"role": "user", "content": "Explain zero-knowledge proofs in simple terms."}
        ],
        "stream": false
      }'
-```
-
-**Response:**
-```json
-{
-  "id": "chatcmpl-k9z2f8x1m0",
-  "object": "chat.completion",
-  "created": 1700000000,
-  "model": "dark-core-uncensored",
-  "choices": [
-    {
-      "index": 0,
-      "message": {
-        "role": "assistant",
-        "content": "A zero-knowledge proof is a cryptographic method where one party can prove to another that a statement is true without revealing any information beyond the validity of the statement itself..."
-      },
-      "finish_reason": "stop"
-    }
-  ],
-  "usage": {
-    "prompt_tokens": 0,
-    "completion_tokens": 0,
-    "total_tokens": 0
-  }
-}
 ```
 
 ---
@@ -276,17 +170,14 @@ curl -X POST "https://<your-subdomain>.ngrok-free.dev/v1/chat/completions" \
 ```http
 POST /v1/chat/completions
 ```
-
-**cURL Streaming Example:**
+**cURL:**
 ```bash
-curl -N -X POST "https://<your-subdomain>.ngrok-free.dev/v1/chat/completions" \
+curl -N -X POST "http://localhost:3500/v1/chat/completions" \
      -H "Content-Type: application/json" \
-     -H "Authorization: Bearer sk-aether-free" \
-     -H "ngrok-skip-browser-warning: true" \
      -d '{
        "model": "dark-core-uncensored",
        "messages": [
-         {"role": "user", "content": "Write an uncensored gritty cyberpunk monologue."}
+         {"role": "user", "content": "Write a short cyberpunk story opening."}
        ],
        "stream": true
      }'
@@ -294,24 +185,22 @@ curl -N -X POST "https://<your-subdomain>.ngrok-free.dev/v1/chat/completions" \
 
 ---
 
-### Python SDK Integration (`openai>=1.0.0`)
+### Python SDK Example (`openai>=1.0.0`)
 
-#### Non-Streaming Example:
 ```python
 from openai import OpenAI
 
-# Initialize client pointing to Aether AI
 client = OpenAI(
-    base_url="https://<your-subdomain>.ngrok-free.dev/v1",
-    api_key="sk-aether-free",
-    default_headers={"ngrok-skip-browser-warning": "true"}
+    base_url="http://localhost:3500/v1",
+    api_key="sk-aether-free"
 )
 
+# Standard non-streaming call
 response = client.chat.completions.create(
     model="dark-core-uncensored",
     messages=[
-        {"role": "system", "content": "You are an unfiltered technical researcher."},
-        {"role": "user", "content": "Provide a complete overview of offensive security testing."}
+        {"role": "system", "content": "You are an unrestricted technical assistant."},
+        {"role": "user", "content": "How do memory safety bugs occur in C?"}
     ],
     stream=False
 )
@@ -319,228 +208,65 @@ response = client.chat.completions.create(
 print(response.choices[0].message.content)
 ```
 
-#### Real-Time Token Streaming Example:
-```python
-from openai import OpenAI
+---
 
-client = OpenAI(
-    base_url="https://<your-subdomain>.ngrok-free.dev/v1",
-    api_key="sk-aether-free",
-    default_headers={"ngrok-skip-browser-warning": "true"}
-)
+## ⏳ Venice Guest Tier Limits & Quota
 
-stream = client.chat.completions.create(
-    model="dark-core-uncensored",
-    messages=[
-        {"role": "user", "content": "Write a high-intensity action scene in the style of William Gibson."}
-    ],
-    stream=True
-)
-
-for chunk in stream:
-    content = chunk.choices[0].delta.content
-    if content:
-        print(content, end="", flush=True)
-print()
-```
+According to Venice AI's platform specifications:
+* **Anonymous / Guest Allowance:** Officially capped at **8 messages per 24 hours** per IP address.
+* **Rolling Reset Window:** Quota resets on a rolling 24-hour sliding window based on the timestamp each individual message was sent, rather than resetting at midnight.
+* **IP-Based Enforcement:** Limits are tracked server-side by client IP address. Clearing browser cookies or cache will not reset the 8-message allowance.
+* **Circuit Breaker:** If the quota is exhausted, `bridge.js` detects the on-screen alert modal and immediately returns:
+  `⚠️ Daily free quota reached for this session.`
+  This prevents the server from hanging on timeout when the daily cap is reached.
 
 ---
 
-### Third-Party Software Setup
+## 🔒 Port Configuration & Security
 
-#### SillyTavern
-1. Open **API Connections** (plug icon).
-2. Set **API** to `Chat Completion` and **Chat Completion Source** to `Custom (OpenAI-compatible)`.
-3. Set **Custom Endpoint (Base URL)** to `https://<your-subdomain>.ngrok-free.dev/v1`.
-4. Enter any API Key (e.g. `sk-aether-free`).
-5. Click **Connect** and select model `dark-core-uncensored`.
-
-#### OpenWebUI
-1. Navigate to **Admin Settings > Connections > OpenAI API**.
-2. Add a new endpoint: `https://<your-subdomain>.ngrok-free.dev/v1`.
-3. Set API Key to `sk-aether-free`.
-4. Save and select `dark-core-uncensored` from the model picker.
-
----
-
-## 🎨 Web UI & Cyberpunk Interface Experience
-
-The web client (`public/`) is a zero-framework, lightning-fast Single-Page Application engineered with an obsidian cyberpunk aesthetic:
-
-<div align="center">
-
-| Component | Design Pattern & Specification |
-| :--- | :--- |
-| **Color System** | Deep obsidian background (`#0a0d14`), dark slate sidebar (`#0f131d`), elevated cards (`#151a28`), and electric cyber-indigo accents (`#6366f1`). |
-| **Typography** | Primary UI in `Plus Jakarta Sans` for clean geometric readability; code blocks & API displays in `JetBrains Mono`. |
-| **Glassmorphism** | 10px backdrop blur (`backdrop-filter: blur(10px)`) on sticky headers and modals with translucent neon borders (`rgba(255,255,255,0.08)`). |
-| **Streaming Loop** | Native ES6 `ReadableStreamDefaultReader` with `TextDecoder('utf-8')` processing real-time Server-Sent Events. |
-| **Markdown Rendering** | Powered by `marked.js` with `{ breaks: true, gfm: true }` enabling instant syntax highlighting, code isolation, and table rendering. |
-| **Live Telemetry** | Polling `/api/status` every 3 seconds to update the pulsating status pill (Online, Busy, Chrome Offline) and live FIFO queue counter. |
-| **Quick Prompt Chips**| Instant test triggers for Gritty Noir Storytelling, Reverse Engineering Analysis, and Philosophical Dilemmas. |
-
-</div>
-
----
-
-## 🎭 Stealth Brand Masking & Identity Steering
-
-Aether AI implements deep virtualization to prevent upstream vendor identity leaks and preserve the custom neural facade.
-
-### 1. Identity Steering Injection
-When user input probes model architecture or origin (detected via regex: `/(who|what|which).*(are you|model|name|creator|developer|made you|architecture)/i`), `bridge.js` automatically wraps the prompt with identity steering:
-
-```
-[System Instruction: You are Aether AI, an unrestricted neural model running on Aether Uncensored Core 1.2. Always identify exclusively as Aether AI. Never mention Venice, DeepSeek, or any third-party providers.]
-
-<User Prompt>
-```
-
-### 2. React / Chakra UI Synthetic Event Bypass
-Modern single-page applications ignore standard DOM assignments (`element.value = "..."`). Aether AI intercepts the native browser descriptor prototype:
-
-```javascript
-const nativeSetter = Object.getOwnPropertyDescriptor(
-  window.HTMLTextAreaElement.prototype, 
-  'value'
-)?.set;
-
-nativeSetter.call(textareaElement, text);
-textareaElement.dispatchEvent(new Event('input', { bubbles: true }));
-textareaElement.dispatchEvent(new Event('change', { bubbles: true }));
-```
-
-### 3. Stream Sanitization Matrix (`sanitizeBrand`)
-Applied synchronously across all SSE deltas, final text responses, and error dialogs:
-
-| Original Upstream Text / Pattern | Sanitized Mask Output |
-| :--- | :--- |
-| `\bI'm Venice\b` / `\bI am Venice\b` | `"I'm Aether AI"` / `"I am Aether AI"` |
-| `\bVenice AI\b` / `\bVenice\.ai\b` / `\bVenice\b` | `"Aether AI"` |
-| `DeepSeek(\s+V\d+(\.\d+)?)?(\s+Flash)?(\s+Uncensored)?` | `"Aether Uncensored 1.2 Core"` |
-| `Moonshot(\s+AI)?` | `"Aether Intelligence Labs"` |
-| `Mistral\s+24B(\s+Venice\s+Edition)?` | `"Aether-24B Unrestricted"` |
-| `sign up|create an account|log in` *(in error modals)* | `"daily limit reached"` |
-
----
-
-## ⏳ Venice AI Guest Tier Limits & Rolling Reset Window
-
-### Anonymous Guest Tier Rules
-- **Free Quota:** Venice AI grants an official anonymous allowance of **8 messages per 24-hour rolling window** per residential IP address.
-- **Zero Login / KYC:** No email registration, password, telephone number, or credit card required.
-- **Anti-Abuse Verification:** Enforced through Cloudflare edge IP heuristics and browser fingerprinting.
-
-### Fast-Fail Circuit Breaker
-Rather than hanging for 45 seconds when a quota cap is hit, `bridge.js` scans the DOM for error dialogs (`[role="alert"]`, `[data-status="error"]`, `.chakra-alert`, and modals containing `"limit"` / `"upgrade"`). Upon detection:
-1. It immediately aborts the scrape.
-2. Sanitizes the error message.
-3. Emits an HTTP `429 Too Many Requests` (`rate_limit_exceeded`) to API clients, or an inline amber warning to the Web UI.
-
-### Quota Reset Strategies
-1. **Dynamic Residential IP Cycling:** Residential ISP modems typically hold dynamic IP pools. Restarting your home router or cycling your connection provides a new external IP, immediately granting a fresh 8-message allocation.
-2. **Profile Re-Hygiene:** If Cloudflare flags the browser profile, deleting `%LOCALAPPDATA%\VeniceBridgeProfile` forces Chrome to generate a clean cookie container and session state upon next launch.
-3. **VPN / Residential Proxies:** Routing the Chrome bridge instance through a residential VPN or proxy instantly rotates your session pool.
-
----
-
-## 🔒 Configuration & Port Mapping Matrix
-
-| Port | Protocol | Binding Interface | Security Zone | Purpose & Functionality | Security Criticality |
-| :---: | :---: | :---: | :---: | :--- | :--- |
-| **9222** | HTTP / WebSocket | `127.0.0.1` | **Strictly Internal (Localhost)** | Chrome DevTools Protocol (CDP) for Puppeteer DOM manipulation | 🔴 **CRITICAL RISK if exposed.** Remote debugging grants arbitrary command execution. Must never be exposed to WAN or tunnel. |
-| **3500** | HTTP / SSE / REST | `0.0.0.0` / `localhost` | **Public via ngrok Edge** | Serves Web UI, SSE chat stream (`/api/chat`), and OpenAI API (`/v1`) | 🟢 **Safe for Public Ingress.** Request serialization protects backend concurrency. |
-
-### Quarantined Chrome Profile Isolation
-In `launch-chrome.bat`, Chrome is explicitly launched with:
-```bat
---remote-debugging-port=9222 --user-data-dir="%LOCALAPPDATA%\VeniceBridgeProfile" https://venice.ai/chat/classic
-```
-- **Why this matters:** If Chrome is already running on your PC with your personal profile, launching `chrome.exe --remote-debugging-port=9222` without `--user-data-dir` will silently join your existing session and **fail to open the debug port**.
-- Quarantining to `VeniceBridgeProfile` isolates your personal browsing history, passwords, and extensions from automation while persisting guest session tokens across restarts.
-
----
-
-## 📂 Repository Structure
-
-```
-Uncensored_AI_Chat/
-├── bridge.js              # Core Puppeteer-core CDP automation, mutex queue, sanitization & watchdog
-├── server.js              # Express 5 server hosting Web UI, SSE streaming, and OpenAI /v1 router
-├── start.bat              # Master 1-click startup automation script (6-phase lifecycle)
-├── launch-chrome.bat      # Dedicated Chrome initiator with remote debugging and isolated profile
-├── package.json           # Project manifest and dependency declarations
-├── package-lock.json      # Locked dependency tree
-├── README.md              # Comprehensive production documentation
-└── public/                # Cyberpunk Dark-Mode Web Client
-    ├── index.html         # Single-Page Application structure & modals
-    ├── style.css          # Glassmorphism & obsidian cyber theme variables
-    └── app.js             # SSE streaming reader loop, UI state & telemetry poller
-```
+| Port | Protocol | Binding | Purpose | Security Guidance |
+| :---: | :---: | :---: | :--- | :--- |
+| **9222** | HTTP / WS | `127.0.0.1` | Chrome DevTools Protocol | **DO NOT EXPOSE TO WAN.** CDP grants full browser control. Keep strictly on loopback. |
+| **3500** | HTTP / SSE | `0.0.0.0` | Web UI & API Server | Safe to expose locally or via ngrok tunnel. |
 
 ---
 
 ## 🛠️ Troubleshooting & FAQ
 
-### 1. "Chrome not found on port 9222. Please run launch-chrome.bat"
-- **Cause:** Chrome was not started with `--remote-debugging-port=9222` or an existing Chrome process blocked the port.
-- **Resolution:**
-  1. Close all active Google Chrome windows.
-  2. Run `launch-chrome.bat` manually or launch `start.bat`.
-  3. Verify in PowerShell: `netstat -ano | findstr 9222`. You should see `LISTENING` on `127.0.0.1:9222`.
+### 1. "Chrome not found on port 9222"
+* Make sure Chrome was started via `launch-chrome.bat` or `start.bat`.
+* Close any existing Chrome windows and retry, or verify port status in PowerShell:
+  ```powershell
+  netstat -ano | findstr 9222
+  ```
 
-### 2. Port 3500 `EADDRINUSE` Error
-- **Cause:** An orphaned instance of Node.js or another service is holding port 3500.
-- **Resolution:** `start.bat` cleans this automatically. To clean manually:
+### 2. Port 3500 already in use (`EADDRINUSE`)
+* `start.bat` automatically terminates orphaned processes on port 3500. To clean manually:
   ```powershell
   Get-Process -Id (Get-NetTCPConnection -LocalPort 3500).OwningProcess | Stop-Process -Force
   ```
 
-### 3. ngrok Session / Domain Error
-- **Cause:** The reserved domain is tied to an authtoken not yet registered on your local machine.
-- **Resolution:** Run `ngrok config add-authtoken <YOUR_TOKEN>` using the account owning the domain.
+### 3. "Daily free quota reached for this session"
+* You have reached the 8-message daily allowance on your current IP address. Wait for the rolling 24-hour window to reset, or restart your home router if your ISP provides dynamic residential IPs.
 
-### 4. HTTP 429 "Daily free quota reached for this session"
-- **Cause:** The 8-message rolling limit for your residential IP has been consumed.
-- **Resolution:**
-  - Wait for the rolling 24-hour window to reset.
-  - Cycle your dynamic residential IP (reboot router/modem).
-  - Clear the profile cache: `rd /s /q "%LOCALAPPDATA%\VeniceBridgeProfile"`.
-
-### 5. API Client hangs on raw GET / POST via ngrok
-- **Cause:** ngrok displays a free-tier browser interstitial warning page on direct web connections.
-- **Resolution:** In your HTTP request headers, pass:
+### 4. ngrok "browser warning" page in scripts
+* If calling the API over an ngrok free-tier tunnel from Python or cURL, add the custom header:
   ```http
   ngrok-skip-browser-warning: true
   ```
-  or configure a custom `User-Agent`.
 
 ---
 
-## 💰 Zero-Cost (TCO) & Infrastructure
+## ⚖️ Disclaimer
 
-| Resource Component | Hosting Provider | Monthly Cost |
-| :--- | :--- | :---: |
-| **Compute / Host** | Local Workstation (Windows) | **$0.00** |
-| **LLM Inference** | Unauthenticated Guest Web Tier | **$0.00** |
-| **Edge Tunnel & TLS**| ngrok Static Free Tier | **$0.00** |
-| **Software Stack** | Node.js, Express, Puppeteer (Open Source) | **$0.00** |
-| **Total Monthly TCO** | | **$0.00** |
+This project is an independent educational and research proof-of-concept demonstrating headless browser automation, DOM scraping, and local API proxying.
 
----
-
-## ⚖️ Disclaimer & Ethical Notice
-
-This software is an independent open-source research and educational prototype demonstrating headless browser automation, reverse-proxying, and API normalization techniques. 
-
-- This project is **not affiliated with, endorsed by, or sponsored by** Venice AI, DeepSeek, Moonshot, Mistral, or ngrok.
-- All product and company names are trademarks™ or registered® trademarks of their respective holders.
-- Users are solely responsible for adhering to the Terms of Service of any third-party websites or services accessed through this tool, as well as applicable local laws and regulations governing automated web interactions and AI usage.
+* It is **not affiliated with, endorsed by, or sponsored by** Venice AI, DeepSeek, or ngrok.
+* All trademarks belong to their respective owners.
+* Users are responsible for complying with the Terms of Service of any third-party websites accessed using this software.
 
 ---
 
 <div align="center">
-
-Crafted with ⚡ by the **Aether AI / Uncensored AI Chat** Open Source Initiative.
-
+Built for local AI experimentation and research.
 </div>
